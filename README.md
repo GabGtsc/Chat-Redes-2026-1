@@ -13,7 +13,7 @@ O plano de implementação cobre **todos** os requisitos estabelecidos pela espe
 - **Mensageria Multicast (`PUB`)**: Suporte a envio para todos do namespace (`#namespace`) ou broadcast global (`*`).
 - **Graceful Shutdown**: Desconexão amigável via `BYE` e `BYE_OK`.
 - **Gerenciamento de Peers e Reconexão**: Identificação de peers inativos (`STALE`) e lógica de reconexão automática com *backoff* exponencial baseado nas tentativas máximas configuradas.
-- **Configuração Externa**: As credenciais, portas e demais configurações sensíveis são lidas de um arquivo `.conf` (sem valores *hardcoded*).
+- **Configuração Externa**: As credenciais, portas e demais configurações sensíveis são lidas de um arquivo `.toml` (sem valores *hardcoded*).
 - **CLI Completa**: Suporte nativo aos comandos: `/peers`, `/msg`, `/pub`, `/conn`, `/rtt`, `/reconnect`, `/log` e `/quit`.
 - **Observabilidade**: Sistema de logs com *timestamps* e escopos de módulos (ex: `[Router]`, `[Network]`).
 
@@ -21,7 +21,7 @@ O plano de implementação cobre **todos** os requisitos estabelecidos pela espe
 
 A aplicação adota uma abordagem assíncrona orientada a eventos usando **`asyncio`**, sendo estruturada em 4 módulos centrais focados em simplicidade e pragmatismo, minimizando dependências externas (usando apenas a biblioteca padrão do Python 3).
 
-### 1. `peer.conf`
+### 1. `conf.toml`
 Arquivo de configuração responsável por injetar todos os parâmetros necessários para o funcionamento do cliente. Garante que nada fique fixo (*hardcoded*) no código-fonte.
 - Define credenciais: `name`, `namespace`, `port`.
 - Servidor: `rendezvous_ip`, `rendezvous_port`.
@@ -29,7 +29,7 @@ Arquivo de configuração responsável por injetar todos os parâmetros necessá
 
 ### 2. `main.py` (Ponto de Entrada e CLI)
 **Responsabilidades:**
-- Lidar com o carregamento do arquivo `peer.conf` (`configparser` / `json`).
+- Lidar com o carregamento do arquivo `conf.toml` (`tomllib`).
 - Inicializar a configuração global de *Logging*.
 - Instanciar a leitura não-bloqueante do terminal (`sys.stdin`) para interpretar comandos do usuário e despachá-los para a camada de mensagens e rede.
 - Controlar o ciclo de vida da aplicação, orquestrando o Graceful Shutdown quando o comando `/quit` for chamado.
@@ -60,6 +60,6 @@ A solução não necessitará de gerenciadores como `pip` ou `poetry`, mantendo 
 - `json`: Serialização do protocolo delimitado por `\n`.
 - `socket`: Suporte adjunto de configuração de rede (se necessário para extração do IP ou portas).
 - `logging`: Observabilidade completa das operações internas.
-- `configparser`: Parseamento limpo e idiomático do `peer.conf`.
+- `tomllib`: Parseamento limpo e idiomático do `conf.toml`.
 - `uuid`: Geração de IDs únicos para o pareamento de requisições (`msg_id`).
 - `time` / `datetime`: Controle de timestamps ISO-8601 e cálculo de deltas de RTT.
